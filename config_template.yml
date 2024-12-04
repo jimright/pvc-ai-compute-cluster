@@ -1,0 +1,13 @@
+---
+
+name_prefix:       "< short_id_for_deployment >" # Unique identifier for the deployment 
+owner_email:       "<email>@cloudera.com"  # Owner email
+infra_az:          "CLOUD" # P9 IOPSCloud SE
+domain:            "{{ name_prefix }}.cldr.example"   # The private, adhoc subdomain (name_prefix.owner_prefix.cldr.demo)
+realm:             "CLDR.EXAMPLE"                      # The Kerberos realm
+common_password:   "Example776"                   # TODO Track where used (tls?) and normalize
+admin_password:    "Example776"                   # "Main" default password, but TODO track where used
+deployment_tags:
+  email: "{{ owner_email }}"
+  deployment: "{{ name_prefix }}"
+  deploy-tool: cloudera-deploy

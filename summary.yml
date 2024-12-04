@@ -1,0 +1,25 @@
+- name: Create a deployment summary document
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+    - name: Create the deployment summary Markdown document
+      ansible.builtin.template:
+        src: "deployment.md.j2"
+        dest: "{{ name_prefix | upper }}-DEPLOYMENT.md"
+    
+    - name: Create the deployment summary HTML document
+      ansible.builtin.template:
+        src: "deployment.html.j2"
+        dest: "{{ name_prefix | upper }}-DEPLOYMENT.html"
+
+- name: Retrieve the FreeIPA CA certificate
+  hosts: freeipa
+  gather_facts: no
+  tasks:
+    - name: Retrieve the CA certificate
+      ansible.builtin.fetch:
+        src: "/etc/ipa/ca.crt"
+        dest: "{{ inventory_hostname }}.ca.crt"
+        flat: yes
+      run_once: yes

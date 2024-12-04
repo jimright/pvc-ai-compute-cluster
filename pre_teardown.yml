@@ -1,0 +1,30 @@
+---
+
+- name: Deprovision the infrastructure resources
+  hosts: localhost
+  connection: local 
+  gather_facts: no
+  tags:
+    - teardown
+    - provision
+  tasks:
+    - name: Deprovision the infrastructure resources in the cloud provider
+      when: groups['all'] | length > 0
+      ansible.builtin.import_role:
+        name: cloudera.infra.openstack_provision
+      vars:
+        openstack_provision_state: absent
+        openstack_provision_directory: "tf_deployment"
+        openstack_provision_state_storage: "{{ terraform.state.storage | default(omit) }}"
+        openstack_provision_create_remote_storage: "{{ terraform.state.create_remote_storage | default(omit) }}"
+        openstack_provision_remote_storage_s3_region: "{{ terraform.state.s3_region | default(omit) }}"
+        openstack_provision_remote_storage_s3_bucket: "{{ terraform.state.s3_bucket | default(omit) }}"
+
+    - name: Remove the deployment summary files
+      ansible.builtin.file:
+        state: absent
+        path: "{{ item }}"
+      loop:
+        - "{{ name_prefix | upper }}-DEPLOYMENT.md"
+        - "{{ name_prefix | upper }}-DEPLOYMENT.html"
+        - "{{ groups['freeipa'] | first }}.ca.crt"

@@ -1,0 +1,63 @@
+---
+
+# Run variable checker
+
+# Provision the infrastructure at the cloud provider
+- name: Provision infrastructure resources
+  hosts: localhost
+  connection: local
+  gather_facts: yes
+  tags: infra
+  tasks:
+    - name: Provision the infrastructure resources in the cloud provider
+      ansible.builtin.import_role:
+        name: cloudera.infra.openstack_provision
+      vars:
+        openstack_provision_state: "present"
+        openstack_provision_directory: "tf_deployment"
+        openstack_provision_name_prefix: "{{ name_prefix }}"
+        openstack_provision_domain_suffix: "{{ domain }}"
+        openstack_provision_ssh_keypair_public_key: "{{ ssh_keypair.public_key | default(public_key_text) }}"
+        openstack_provision_owner_email: "{{ owner_email }}"
+        openstack_provision_instances: "{{ infra.nodes | default([]) }}"
+        openstack_provision_boot_from_volume: "{{infra.boot_from_volume | default(omit)}}"
+        openstack_provision_tags: "{{ deployment_tags | default(omit) }}"
+        openstack_provision_network_name: "{{ infra.network_name | default(omit) }}"
+        openstack_provision_subnet_name: "{{ infra.subnet_name | default(omit) }}"
+        openstack_provision_default_image_name: "{{ infra.default_image_name | default(omit) }}"
+        openstack_provision_default_availability_zone: "{{ infra.default_availability_zone | default(omit) }}"
+        openstack_provision_terraform_parallelism: "{{ terraform.parallelism | default(omit) }}"
+        openstack_provision_state_storage: "{{ terraform.state.storage | default(omit) }}"
+        openstack_provision_create_remote_storage: "{{ terraform.state.create_remote_storage | default(omit) }}"
+        openstack_provision_remote_storage_s3_region: "{{ terraform.state.s3_region | default(omit) }}"
+        openstack_provision_remote_storage_s3_bucket: "{{ terraform.state.s3_bucket | default(omit) }}"
+
+    - name: Establish the Ansible inventory
+      ansible.builtin.meta: refresh_inventory
+
+# Confirm the availablity of all nodes
+- name: Ensure node readiness
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Ensure the node is reachable
+      ansible.builtin.wait_for_connection:
+        timeout: 60
+
+# Prepare and mount any attached volumes
+- name: Prepare and mount storage volumes
+  hosts: all 
+  gather_facts: no
+  become: True
+  tasks:
+
+    - name: Convert storage_volume jsonstring variable to object
+      ansible.builtin.set_fact:
+        storage_volumes_fact: "{{ storage_volumes | from_json }}"
+
+    - name: Prepare storage volumes
+      when: storage_volumes | length > 0
+      ansible.builtin.import_role:
+        name: cloudera.infra.mount
+      vars:
+        mount_volumes: "{{ storage_volumes_fact }}"

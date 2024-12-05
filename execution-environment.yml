@@ -7,8 +7,6 @@ images:
     name: ghcr.io/cloudera-labs/cldr-runner-aws:latest
 
 dependencies:
-  python:
-    - pywinrm>=0.3.0
   galaxy:
     collections:
       - name: https://github.infra.cloudera.com/GOES/cloudera.infra
@@ -17,5 +15,3 @@ dependencies:
       - name: https://github.infra.cloudera.com/GOES/cloudera.runtime
         type: git
         version: devel
-      - name: community.windows
-        version: 2.0.0

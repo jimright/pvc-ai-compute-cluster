@@ -1,6 +1,6 @@
-# PvC Base and ECS with sidecar FreeIPA
+# Cloudera AI Compute Only Cluster with sidecar FreeIPA
 
-> Constructs CDP Private Cloud Base and ECS clusters with sidecar FreeIPA. Note that the sidecar FreeIPA is the DNS server, access to the nodes via URL needs to go via FreeIPA (e.g. using a SOCKS5 proxy).
+> Constructs Cloudera on Premise Base and ECS clusters with sidecar FreeIPA to enable provisioning of a Cloudera AI Compute Only Cluster. Note that the sidecar FreeIPA is the DNS server, access to the nodes via URL needs to go via FreeIPA (e.g. using a SOCKS5 proxy).
 
 A summary of the infrastructure and cluster configuration is given below.
 
@@ -12,9 +12,8 @@ A summary of the infrastructure and cluster configuration is given below.
 | _**DNS & Directory Service**_  | FreeIPA server deployed as part of automation |
 | _**Infrastructure Platform**_  | OpenStack |
 | _**Num Nodes Created**_        | 4 |
-| _FreeIPA Server Nodes_         | 1 |
-| _Base Master Nodes_            | 1 |
-| _Base Worker Nodes_            | 2 |
+| _FreeIPA & Cloudera Manager Server Nodes_         | 1 |
+| _Base Nodes_            | 1 |
 | _ECS Master Nodes_             | 1 |
 | _ECS Worker Nodes_             | 3 |
 
@@ -51,13 +50,13 @@ We provide instructions for using a Docker container based execution environment
 1. Clone this repository.
 
     ```bash
-    git clone https://github.infra.cloudera.com/GOES/pvc-ecs-freeipa-sidecar.git; 
+    git clone https://github.infra.cloudera.com/jenright/pvc-ai-compute-cluster.git; 
     ```
 
 1. Change your working directory to this project.
 
     ```bash
-    cd pvc-ecs-freeipa-sidecar
+    cd pvc-ai-compute-cluster
     ```
 
 #### Environment Variables
@@ -107,37 +106,36 @@ deployment_tags:
 
 NOTE: If you need to debug any of the following Ansible playbooks, include the `verbose` flags, i.e. `-vvv`, or for full connection debugging, `-vvvvv`.
 
-### Pre-setup Playbook
+### (Optional) Infrastructure setup Playbook
 
-This definition-specific playbook includes tasks such as:
-* Instructure provisioning
-* FreeIPA DNS and KRB services provisioning
+This playbook includes tasks to provision the infrastructure resources. It is an optional and can be used when the infrastructure is required to be created.
 
-Run the following command 
+Run the following command for the infra_setup.yml playbook:
 
 ```bash
-ansible-navigator run pre_setup.yml \
+ansible-navigator run infra_setup.yml \
 -e @config.yml \
 -e @definition.yml
 ```
 
+> **_NOTE:_** If the infrastructure resources already exist then an inventory file can be populated with this details. See the next section for details on this.
+
 > **_NOTE:_** On the Platform 9 IOPSCloud intermittent failures in VM instance creation may occur due to timeouts during image upload to the boot volume. When this happens the pre_setup.yml will fail at the `Provision infrastructure resources` play. The pre_setup.yml Playbook can be rerun until all instances are created successfully.
 
-Once the pre-setup playbook completes confirm that:
+### Creating an Inventory file for pre-existing Playbooks
 
-* You can connect to each node via the inventory - see [Confirm SSH Connectivity](#confirm-ssh-connectivity) for help. You can also run `ansible-navigator run validate_dns_lookups.yml` to check connectivity and DNS.
-* Connect to FreeIPA UI and login with the `IPA_USER` and the `common_password` credentials from the configuration file. See [Cluster Access](#cluster-access) for details.
+TODO:
 
 ### Platform Playbooks
 
-These playbooks configure and deploy PVC Base and ECS. 
+These playbooks configure and deploy PVC Base and ECS.
 
 Tasks include:
 * System/host configuration
 * Cloudera Manager server and agent installation and configuration
 * Cluster template imports
 
-Run the following: 
+Run the following:
 
 ```bash
 # Run the 'external' system configuration
@@ -159,7 +157,6 @@ ansible-navigator run base_setup.yml \
 -e @config.yml \
 -e @definition.yml
 ```
-
 
 ## Deployment Summary Playbook & Cluster Access
 

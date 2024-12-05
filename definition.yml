@@ -24,40 +24,27 @@ infra:
   subnet_name: SE_INTERNAL_SUBNET
   default_availability_zone: "{{ infra_az }}"
   nodes:
-    # FreeIPA
-    - hostname_prefix: "freeipa" # hostname will be of form {{ name_prefix }}-{{ hostname_prefix }}-<index of {{ count }}>
+    # Manager, FreeIPA, DB
+    - hostname_prefix: "manager" # hostname will be of form {{ name_prefix }}-{{ hostname_prefix }}-<index of {{ count }}>
       count: 1
       groups:
+        - cloudera_manager
         - freeipa
         - deployment
+        - db_server
       flavor: r1.medium
-      boot_volume_size: 20 
+      boot_volume_size: 200 
       ansible_user: centos
-    # Manager, Master, DB, and CA   
+    # Master
     - hostname_prefix: "base" # hostname will be of form {{ name_prefix }}-{{ hostname_prefix }}-<index of {{ count }}>
       count: 1
-      groups: 
-        - cloudera_manager
+      groups:         
         - cluster_masters
         - cluster
-        - db_server
         - deployment
       host_template: Masters
       flavor: m1.4xlarge
-      boot_volume_size: 100
-      ansible_user: centos
-      tls: True
-    # Cluster Worker
-    - hostname_prefix: "worker"
-      count: 2
-      groups:
-        - cluster_workers
-        - cluster
-        - linux_nodes
-        - deployment
-      host_template: Workers
-      flavor: m1.xlarge
-      boot_volume_size: 100
+      boot_volume_size: 300
       ansible_user: centos
       tls: True
     - hostname_prefix: ecs-m
@@ -68,7 +55,6 @@ infra:
         - cluster
         - nodes
         - ecs_nodes
-        - small_ecs_nodes
         - linux_nodes
         - deployment
       flavor: m1.xlarge
@@ -82,7 +68,7 @@ infra:
     # ECS Workers
     - hostname_prefix: ecs-w
       host_template: ECSWorker
-      count: 3
+      count: 1
       groups:
         - cluster_ecs_workers
         - cluster
@@ -143,6 +129,13 @@ freeipa_activated: yes
 # FreeIPA client install on cluster nodes is done during pre_setup, so suppress
 freeipa_enroll: no 
 
+# Network CIDR for DNS zones that FreeIPA server will manage
+freeipa_network_dns_zones:
+  - 10.129.80.0/24
+  - 10.129.81.0/24
+  - 10.129.82.0/24
+  - 10.129.83.0/24
+
 # FreeIPA realm settings
 freeipa:
   realm: "{{ realm }}"
@@ -159,7 +152,7 @@ cloudera_manager_version: 7.11.3.9
 
 # General options
 cloudera_manager_options:
-  CUSTOM_BANNER_HTML: "PVC Base+ECS Lab ({{ name_prefix }})"
+  CUSTOM_BANNER_HTML: "Cloudera AI Compute Cluster ({{ name_prefix }})"
   SESSION_TIMEOUT: 43200
   PARCEL_DISTRIBUTE_RATE_LIMIT_KBS_PER_SECOND: 194560
   KRB_AUTH_ENABLE: "true"

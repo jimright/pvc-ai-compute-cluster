@@ -42,7 +42,7 @@ ansible-navigator:
         ANSIBLE_DEPRECATION_WARNINGS: False
         ANSIBLE_HOST_KEY_CHECKING: False
         ANSIBLE_SSH_RETRIES: 10
-    image: docker-sandbox.infra.cloudera.com/goes/pvc-ecs-freeipa-sidecar:latest
+    image: docker-sandbox.infra.cloudera.com/goes/pvc-ai-compute:latest
     pull:
       arguments:
         - "--tls-verify=false"
